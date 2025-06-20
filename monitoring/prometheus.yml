@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'spring-boot-microservices'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'config-server:8888'
+          - 'eureka-server:8761'
+          - 'api-gateway:8080'
+          - 'user-service:8081'
+          - 'product-catalog-service:8082'
+          - 'shopping-cart-service:8083'
+          - 'order-service:8084'
+          - 'payment-service:8085'
+          - 'notification-service:8086'
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgresql:5432']

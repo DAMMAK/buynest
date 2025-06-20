@@ -1,0 +1,85 @@
+# src/main/resources/application.yml
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  security:
+    user:
+      name: ${CONFIG_SERVER_USERNAME:admin}
+      password: ${CONFIG_SERVER_PASSWORD:changeme}
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_REPO_URI:https://github.com/your-org/config-repo.git}
+          search-paths: '{application}'
+          clone-on-start: true
+          timeout: 10
+          force-pull: true
+          delete-untracked-branches: true
+        health:
+          enabled: true
+          repositories:
+            api-gateway:
+              label: main
+              name: api-gateway
+              profiles: default
+            user-service:
+              label: main
+              name: user-service
+              profiles: default
+    bus:
+      enabled: true
+      refresh:
+        enabled: true
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,refresh,bus-refresh,env,configprops
+  endpoint:
+    health:
+      show-details: always
+    refresh:
+      access: unrestricted
+    env:
+      show-values: when-authorized
+  health:
+    diskspace:
+      enabled: true
+    db:
+      enabled: false
+
+# Logging configuration
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.security: DEBUG
+    com.ecommerce.config: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/config-server.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+
+# Security configuration
+config:
+  server:
+    security:
+      username: ${CONFIG_SERVER_USERNAME:admin}
+      password: ${CONFIG_SERVER_PASSWORD:changeme}
+
+# RabbitMQ configuration for Spring Cloud Bus
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT:5672}
+  username: ${RABBITMQ_USERNAME:guest}
+  password: ${RABBITMQ_PASSWORD:guest}

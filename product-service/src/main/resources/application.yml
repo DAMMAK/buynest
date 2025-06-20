@@ -1,0 +1,94 @@
+server:
+  port: 8082
+
+#springdoc:
+#  swagger-ui:
+#    enabled: true
+#  api-docs:
+#    enabled: true
+
+spring:
+  application:
+    name: product-catalog-service
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/catalog_db
+    username: postgres
+    password: admin_password_123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 50MB
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis_password_123
+      timeout: 2000ms
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+app:
+  seed-data:
+    enabled: true
+  openapi:
+    dev-url: http://localhost:8082
+    prod-url: https://your-production-url.com
+  file-upload:
+    upload-dir: ./uploads/products
+    max-file-size: 5242880
+    allowed-types:
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+
+logging:
+  level:
+    com.ecommerce.catalog: DEBUG
+    org.springframework.cache: DEBUG
+#    org.springdoc: DEBUG
+

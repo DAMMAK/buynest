@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-user:5432/user_db
+    username: postgres
+    password: admin_password_123
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    hostname: user-service
+    prefer-ip-address: false
+
+app:
+  frontend:
+    url: http://frontend:3000

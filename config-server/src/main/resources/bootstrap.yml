@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        encrypt:
+          enabled: true
+        git:
+          uri: ${CONFIG_REPO_URI:https://github.com/your-org/config-repo.git}
+          username: ${GIT_USERNAME:}
+          password: ${GIT_PASSWORD:}
+          default-label: main
+          clone-on-start: true
+          timeout: 10
+        native:
+          search-locations: classpath:/config-repo/
+        health:
+          repositories:
+            user-service:
+              label: main
+              name: user-service
+              profiles: default
+
+encrypt:
+  key: ${ENCRYPT_KEY:mySecretKey}

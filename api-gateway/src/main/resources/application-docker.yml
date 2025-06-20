@@ -1,0 +1,14 @@
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+
+logging:
+  file:
+    name: /app/logs/api-gateway.log

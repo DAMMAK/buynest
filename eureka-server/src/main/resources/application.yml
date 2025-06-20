@@ -1,0 +1,191 @@
+# Eureka Server Configuration
+server:
+  port: 8761
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: eureka-server
+  # IMPORTANT: Do NOT set spring.profiles.active here if you plan to activate profiles
+  # like 'peer1', 'peer2', 'dev', or 'prod' via command line or environment variables.
+  # Removing this allows profiles to be activated dynamically.
+  # profiles:
+  #   active: default
+
+# Eureka Server Specific Configuration
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost} # Default to 'localhost' for a standalone server
+    prefer-ip-address: false # Eureka server usually binds to hostname
+    lease-renewal-interval-in-seconds: 10 # How often clients send heartbeats
+    lease-expiration-duration-in-seconds: 20 # How long Eureka waits for heartbeat before evicting
+
+  client:
+    register-with-eureka: false # A Eureka server itself should NOT register with itself
+    fetch-registry: false # A Eureka server itself should NOT fetch its own registry
+    # The defaultZone is primarily for clients to discover services or for peers to connect.
+    # For a standalone server, it's largely irrelevant when register-with-eureka is false.
+    # However, it's good practice to set it to its own address for clarity or potential future client usage.
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+    eureka-server-connect-timeout-seconds: 15
+    eureka-server-read-timeout-seconds: 15
+
+  server:
+    # Self-preservation mode: Prevents eviction during network partitions,
+    # ensuring clients don't lose all registered services.
+    enable-self-preservation: true
+    self-preservation-threshold: 0.85 # % of expected renewals below which self-preservation mode is triggered
+    eviction-interval-timer-in-ms: 60000 # How often Eureka evicts expired instances (1 minute)
+
+    # Response cache: Improves performance for read-heavy operations
+    response-cache-update-interval-ms: 30000 # How often the Eureka server's response cache is updated
+    response-cache-auto-expiration-in-seconds: 180 # How long responses stay in cache before expiring
+
+    # Peer replication: For High Availability (HA) setups.
+    peer-eureka-nodes-update-interval-ms: 600000 # How often peer Eureka nodes are discovered/updated (10 minutes)
+    peer-eureka-status-refresh-time-interval-ms: 30000 # How often the status of peer nodes is refreshed
+
+    # Registry configuration: It's generally recommended to let Eureka dynamically
+    # calculate these values based on actual client renewals. Removing them
+    # allows for more adaptive behavior.
+    # expected-number-of-clients-sending-renews: 1 # Removed, let Eureka auto-calculate
+    # renewal-threshold-update-interval-ms: 900000 # Removed, let Eureka auto-calculate
+    # renewal-percent-threshold: 0.85 # Removed, let Eureka auto-calculate (default is also 0.85)
+
+  dashboard:
+    enabled: true
+    path: / # Eureka dashboard will be accessible at http://localhost:8761/
+
+# Management endpoints configuration (Actuator)
+management:
+  endpoints:
+    web:
+      exposure:
+        # For production, consider exposing only specific, necessary endpoints
+        # e.g., 'health', 'info', 'metrics', 'prometheus'. '*' exposes all.
+        include: "*"
+      base-path: /actuator # Actuator endpoints will be accessible at http://localhost:8761/actuator
+  endpoint:
+    health:
+      show-details: always # Show full health details
+      show-components: always # Show individual component health
+    metrics:
+      access: unrestricted # Unrestricted access for metrics
+    prometheus:
+      access: unrestricted # Unrestricted access for Prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 10ms,50ms,100ms,200ms,500ms,1s,2s,5s
+  health:
+    diskspace:
+      enabled: true
+    ping:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Logging configuration
+logging:
+  level:
+    com.netflix.eureka: INFO # Core Eureka client/server components
+    com.netflix.discovery: INFO # Discovery client components
+    com.ecommerce.eureka: DEBUG # Adjust this if your base package is different
+    org.springframework.cloud.netflix.eureka: INFO # Spring Cloud Netflix Eureka integration
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+  file:
+    name: logs/eureka-server.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+
+# Custom application properties (for documentation/info)
+app:
+  name: E-commerce Eureka Server
+  version: 1.0.0
+  description: Service Discovery Server for E-commerce Microservices Platform
+
+---
+# High Availability Configuration - Peer 1
+# To activate: Add --spring.profiles.active=peer1 to JVM args or set SPRING_PROFILES_ACTIVE=peer1 env var
+spring:
+  config:
+    activate:
+      on-profile: peer1
+
+eureka:
+  instance:
+    hostname: eureka-peer1 # This hostname must be resolvable by all services and other peers
+  client:
+    # defaultZone points to the peer(s) for HA - no credentials needed now
+    service-url:
+      defaultZone: http://eureka-peer2:8762/eureka/
+
+server:
+  port: 8761 # Peer 1 runs on port 8761
+
+---
+# High Availability Configuration - Peer 2
+# To activate: Add --spring.profiles.active=peer2 to JVM args or set SPRING_PROFILES_ACTIVE=peer2 env var
+spring:
+  config:
+    activate:
+      on-profile: peer2
+
+eureka:
+  instance:
+    hostname: eureka-peer2 # This hostname must be resolvable by all services and other peers
+  client:
+    # defaultZone points to the peer(s) for HA - no credentials needed now
+    service-url:
+      defaultZone: http://eureka-peer1:8761/eureka/
+
+server:
+  port: 8762 # Peer 2 runs on port 8762
+
+---
+# Development Profile
+# To activate: Add --spring.profiles.active=dev to JVM args or set SPRING_PROFILES_ACTIVE=dev env var
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    com.ecommerce.eureka: DEBUG # More verbose for your application code
+    org.springframework.cloud.netflix.eureka: DEBUG # More verbose for Eureka client/server interaction
+    root: INFO # Overall logging level
+eureka:
+  server:
+    enable-self-preservation: false # Disable self-preservation in dev for faster eviction
+    eviction-interval-timer-in-ms: 10000 # Faster eviction for development (10 seconds)
+
+---
+# Production Profile
+# To activate: Add --spring.profiles.active=prod to JVM args or set SPRING_PROFILES_ACTIVE=prod env var
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN # Reduce overall logging noise in production
+    com.ecommerce.eureka: INFO # Your application specific logs
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
+    org.springframework.cloud.netflix.eureka: WARN # Reduce Eureka specific logs
+eureka:
+  server:
+    enable-self-preservation: true # Self-preservation is crucial for production
+    self-preservation-threshold: 0.90 # A slightly higher threshold, can be tuned based on environment
