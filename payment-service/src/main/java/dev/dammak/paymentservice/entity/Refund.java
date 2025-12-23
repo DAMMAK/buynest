@@ -41,7 +41,7 @@ public class Refund {
     private String reason;
     private String gatewayRefundId;
 
-    @Lob
+    @Column(name = "gateway_response", columnDefinition = "TEXT")
     private String gatewayResponse;
 
     private String failureReason;

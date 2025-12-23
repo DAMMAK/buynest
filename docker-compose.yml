@@ -282,71 +282,81 @@ services:
     networks:
       - ecommerce-network
 
-  #  shopping-cart-service:
-  #    build: ./shopping-cart-service
-  #    container_name: shopping-cart-service
-  #    ports:
-  #      - "8083:8083"
-  #    depends_on:
-  #      eureka-server:
-  #        condition: service_healthy
-  #      postgres-cart:
-  #        condition: service_healthy
-  #      redis:
-  #        condition: service_healthy
-  #      kafka:
-  #        condition: service_healthy
-  #    environment:
-  #      - SPRING_PROFILES_ACTIVE=docker
-  #      - CONFIG_SERVER_URL=http://config-server:8888
-  #      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-cart:5432/cart_db
-  #      - SPRING_REDIS_HOST=redis
-  #      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #    networks:
-  #      - ecommerce-network
+  shopping-cart-service:
+    build: ./shopping-cart-service
+    container_name: shopping-cart-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-cart:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-cart:5432/cart_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin_password_123
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PASSWORD=redis_password_123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+    networks:
+      - ecommerce-network
 
-  #  order-service:
-  #    build: ./order-service
-  #    container_name: order-service
-  #    ports:
-  #      - "8084:8084"
-  #    depends_on:
-  #      eureka-server:
-  #        condition: service_healthy
-  #      postgres-order:
-  #        condition: service_healthy
-  #      kafka:
-  #        condition: service_healthy
-  #    environment:
-  #      - SPRING_PROFILES_ACTIVE=docker
-  #      - CONFIG_SERVER_URL=http://config-server:8888
-  #      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
-  #      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #    networks:
-  #      - ecommerce-network
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-order:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin_password_123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+    networks:
+      - ecommerce-network
 
-  #  payment-service:
-  #    build: ./payment-service
-  #    container_name: payment-service
-  #    ports:
-  #      - "8085:8085"
-  #    depends_on:
-  #      eureka-server:
-  #        condition: service_healthy
-  #      postgres-payment:
-  #        condition: service_healthy
-  #      kafka:
-  #        condition: service_healthy
-  #    environment:
-  #      - SPRING_PROFILES_ACTIVE=docker
-  #      - CONFIG_SERVER_URL=http://config-server:8888
-  #      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
-  #      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #    networks:
-  #      - ecommerce-network
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-payment:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin_password_123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+    networks:
+      - ecommerce-network
 
   notification-service:
     build: ./notification-service
