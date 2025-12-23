@@ -1,14 +1,14 @@
-version: '3.8'
-
 services:
   # Infrastructure Services
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.5.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - ecommerce-network
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       interval: 30s
@@ -16,12 +16,14 @@ services:
       retries: 3
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.5.0
     depends_on:
       zookeeper:
         condition: service_healthy
     ports:
       - "9092:9092"
+    networks:
+      - ecommerce-network
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -52,7 +54,7 @@ services:
       - ecommerce-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -80,7 +82,7 @@ services:
       - ecommerce-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -100,7 +102,7 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d user_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_db" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -119,7 +121,7 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d catalog_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d catalog_db" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -138,7 +140,7 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d cart_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d cart_db" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -157,7 +159,7 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d order_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d order_db" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -176,7 +178,7 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d payment_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d payment_db" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -187,7 +189,7 @@ services:
     environment:
       POSTGRES_DB: notification_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: admin_password_123
     ports:
       - "5437:5432"
     volumes:
@@ -195,35 +197,35 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d notification_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d notification_db" ]
       interval: 30s
       timeout: 10s
       retries: 3
 
   # Core Services
-#  config-server:
-#    build: ./config-server
-#    container_name: config-server
-#    ports:
-#      - "8888:8888"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#    networks:
-#      - ecommerce-network
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 3
+  #  config-server:
+  #    build: ./config-server
+  #    container_name: config-server
+  #    ports:
+  #      - "8888:8888"
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=docker
+  #    networks:
+  #      - ecommerce-network
+  #    healthcheck:
+  #      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+  #      interval: 30s
+  #      timeout: 10s
+  #      retries: 3
 
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
     ports:
       - "8761:8761"
-#    depends_on:
-#      config-server:
-#        condition: service_healthy
+    #    depends_on:
+    #      config-server:
+    #        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - CONFIG_SERVER_URL=http://config-server:8888
@@ -254,7 +256,7 @@ services:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/user_db
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8080 -Xmx2g -Dspring.profiles.active=docker"
+    #      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8080 -Xmx2g -Dspring.profiles.active=docker"
 
     networks:
       - ecommerce-network
@@ -280,71 +282,71 @@ services:
     networks:
       - ecommerce-network
 
-#  shopping-cart-service:
-#    build: ./shopping-cart-service
-#    container_name: shopping-cart-service
-#    ports:
-#      - "8083:8083"
-#    depends_on:
-#      eureka-server:
-#        condition: service_healthy
-#      postgres-cart:
-#        condition: service_healthy
-#      redis:
-#        condition: service_healthy
-#      kafka:
-#        condition: service_healthy
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - CONFIG_SERVER_URL=http://config-server:8888
-#      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-cart:5432/cart_db
-#      - SPRING_REDIS_HOST=redis
-#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#    networks:
-#      - ecommerce-network
+  #  shopping-cart-service:
+  #    build: ./shopping-cart-service
+  #    container_name: shopping-cart-service
+  #    ports:
+  #      - "8083:8083"
+  #    depends_on:
+  #      eureka-server:
+  #        condition: service_healthy
+  #      postgres-cart:
+  #        condition: service_healthy
+  #      redis:
+  #        condition: service_healthy
+  #      kafka:
+  #        condition: service_healthy
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=docker
+  #      - CONFIG_SERVER_URL=http://config-server:8888
+  #      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-cart:5432/cart_db
+  #      - SPRING_REDIS_HOST=redis
+  #      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  #    networks:
+  #      - ecommerce-network
 
-#  order-service:
-#    build: ./order-service
-#    container_name: order-service
-#    ports:
-#      - "8084:8084"
-#    depends_on:
-#      eureka-server:
-#        condition: service_healthy
-#      postgres-order:
-#        condition: service_healthy
-#      kafka:
-#        condition: service_healthy
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - CONFIG_SERVER_URL=http://config-server:8888
-#      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
-#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#    networks:
-#      - ecommerce-network
+  #  order-service:
+  #    build: ./order-service
+  #    container_name: order-service
+  #    ports:
+  #      - "8084:8084"
+  #    depends_on:
+  #      eureka-server:
+  #        condition: service_healthy
+  #      postgres-order:
+  #        condition: service_healthy
+  #      kafka:
+  #        condition: service_healthy
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=docker
+  #      - CONFIG_SERVER_URL=http://config-server:8888
+  #      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
+  #      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  #    networks:
+  #      - ecommerce-network
 
-#  payment-service:
-#    build: ./payment-service
-#    container_name: payment-service
-#    ports:
-#      - "8085:8085"
-#    depends_on:
-#      eureka-server:
-#        condition: service_healthy
-#      postgres-payment:
-#        condition: service_healthy
-#      kafka:
-#        condition: service_healthy
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - CONFIG_SERVER_URL=http://config-server:8888
-#      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
-#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#    networks:
-#      - ecommerce-network
+  #  payment-service:
+  #    build: ./payment-service
+  #    container_name: payment-service
+  #    ports:
+  #      - "8085:8085"
+  #    depends_on:
+  #      eureka-server:
+  #        condition: service_healthy
+  #      postgres-payment:
+  #        condition: service_healthy
+  #      kafka:
+  #        condition: service_healthy
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=docker
+  #      - CONFIG_SERVER_URL=http://config-server:8888
+  #      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
+  #      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  #    networks:
+  #      - ecommerce-network
 
   notification-service:
     build: ./notification-service
@@ -363,7 +365,17 @@ services:
       - CONFIG_SERVER_URL=http://config-server:8888
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-notification:5432/notification_db
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin_password_123
+      - DB_HOST=postgres-notification
+      - DB_PORT=5432
+      - DB_NAME=notification_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=admin_password_123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+      - SERVER_PORT=8086
     networks:
       - ecommerce-network
 
@@ -445,9 +457,10 @@ volumes:
   postgres_payment_data:
   postgres_notification_data:
 
+
 networks:
   ecommerce-network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.30.0.0/16

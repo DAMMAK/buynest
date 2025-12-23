@@ -1,17 +1,21 @@
 # Build stage
-FROM maven:3.8.4-openjdk-17-slim AS build
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# Copy pom.xml first for better layer caching
+# Copy Maven wrapper and pom.xml
+COPY mvnw .
+COPY .mvn .mvn
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+
+# Download dependencies
+RUN chmod +x ./mvnw && ./mvnw dependency:go-offline -B
 
 # Copy source code and build
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN ./mvnw clean package -DskipTests
 
 # Runtime stage
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre
 
 LABEL maintainer="ecommerce-platform"
 LABEL version="1.0.0"
@@ -19,9 +23,9 @@ LABEL description="API Gateway for E-commerce Platform"
 
 # Install curl and create user
 RUN apt-get update && apt-get install -y curl && \
-    addgroup --system spring && \
-    adduser --system spring --ingroup spring && \
-    rm -rf /var/lib/apt/lists/*
+  addgroup --system spring && \
+  adduser --system spring --ingroup spring && \
+  rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
