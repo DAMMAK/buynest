@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  spring-profile: "docker"
+  config-server-url: "http://config-server:8888"
+  eureka-client-url: "http://eureka-server:8761/eureka"
+  eureka-server-url: "http://eureka-server:8761/eureka" # Some services use different env var names
+  kafka-bootstrap: "kafka:9092"
+  postgres-user: "postgres"
+  postgres-host: "postgres"
+  postres-port: "5432"
+  redis-host: "redis"

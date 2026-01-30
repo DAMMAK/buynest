@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-cart-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopping-cart-service
+  template:
+    metadata:
+      labels:
+        app: shopping-cart-service
+    spec:
+      containers:
+        - name: shopping-cart-service
+          image: shopping-cart-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: spring-profile
+            - name: CONFIG_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: config-server-url
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: eureka-client-url
+            - name: EUREKA_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: eureka-server-url
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/cart_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: postgres-user
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: postgres-password
+            - name: SPRING_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: redis-host
+            - name: SPRING_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: redis-password
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: kafka-bootstrap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-cart-service
+spec:
+  selector:
+    app: shopping-cart-service
+  ports:
+    - protocol: TCP
+      port: 8083
+      targetPort: 8083
